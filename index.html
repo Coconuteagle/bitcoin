@@ -1,92 +1,109 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>원화-사토시 변환기</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        let btcPriceGecko = 0;
-        let btcPriceUpbit = 0;
-        let kimchiPremium = 0;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>원화-사토시 변환기</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    let btcPriceGecko = 0;
+    let btcPriceUpbit = 0;
+    let kimchiPremium = 0;
 
-        async function fetchData() {
-            try {
-                const timestamp = new Date().getTime();
-                const geckoResponse = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=krw&include_last_updated_at=true&nocache=${timestamp}`);
-                const geckoData = await geckoResponse.json();
-                btcPriceGecko = geckoData.bitcoin.krw;
-                const geckoTime = new Date(geckoData.bitcoin.last_updated_at * 1000).toLocaleString();
-                
-                const upbitResponse = await fetch(`https://api.upbit.com/v1/ticker?markets=KRW-BTC&nocache=${timestamp}`);
-                const upbitData = await upbitResponse.json();
-                btcPriceUpbit = upbitData[0].trade_price;
-                const upbitTime = new Date(upbitData[0].timestamp).toLocaleString();
+    async function fetchData() {
+      try {
+        const timestamp = new Date().getTime();
+        const geckoResponse = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=krw&include_last_updated_at=true&nocache=${timestamp}`);
+        const geckoData = await geckoResponse.json();
+        btcPriceGecko = geckoData.bitcoin.krw;
+        const geckoTime = new Date(geckoData.bitcoin.last_updated_at * 1000).toLocaleString();
+        
+        const upbitResponse = await fetch(`https://api.upbit.com/v1/ticker?markets=KRW-BTC&nocache=${timestamp}`);
+        const upbitData = await upbitResponse.json();
+        btcPriceUpbit = upbitData[0].trade_price;
+        const upbitTime = new Date(upbitData[0].timestamp).toLocaleString();
 
-                kimchiPremium = ((btcPriceUpbit - btcPriceGecko) / btcPriceGecko) * 100;
+        kimchiPremium = ((btcPriceUpbit - btcPriceGecko) / btcPriceGecko) * 100;
 
-                document.getElementById('btcPriceGecko').innerHTML = `<span class='text-yellow-400'>${Math.floor(btcPriceGecko).toLocaleString()} 원</span>`;
-                document.getElementById('btcPriceGeckoTime').innerText = "업데이트: " + geckoTime;
-                document.getElementById('btcPriceUpbit').innerHTML = `<span class='text-yellow-400'>${Math.floor(btcPriceUpbit).toLocaleString()} 원</span>`;
-                document.getElementById('btcPriceUpbitTime').innerText = "업데이트: " + upbitTime;
-                document.getElementById('kimchiPremium').innerText = kimchiPremium.toFixed(2) + "%";
-            } catch (error) {
-                alert("가격 정보를 가져오는 데 실패했습니다. 다시 시도해주세요.");
-            }
+        document.getElementById('btcPriceGecko').innerHTML = `<span class='text-yellow-400'>${Math.floor(btcPriceGecko).toLocaleString()} 원</span>`;
+        document.getElementById('btcPriceGeckoTime').innerText = "업데이트: " + geckoTime;
+        document.getElementById('btcPriceUpbit').innerHTML = `<span class='text-yellow-400'>${Math.floor(btcPriceUpbit).toLocaleString()} 원</span>`;
+        document.getElementById('btcPriceUpbitTime').innerText = "업데이트: " + upbitTime;
+        document.getElementById('kimchiPremium').innerText = kimchiPremium.toFixed(2) + "%";
+      } catch (error) {
+        alert("가격 정보를 가져오는 데 실패했습니다. 다시 시도해주세요.");
+      }
+    }
+
+    function formatInput(input) {
+      let value = input.value.replace(/,/g, "");
+      if (!isNaN(value) && value !== "") {
+        input.value = Number(value).toLocaleString();
+      }
+    }
+
+    function convert() {
+      const inputKRW = document.getElementById('krwInput');
+      let rawValue = inputKRW.value.replace(/,/g, "");
+      if (btcPriceUpbit === 0) {
+        alert("비트코인 가격을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+        return;
+      }
+      const satoshi = (rawValue / btcPriceUpbit) * 100000000;
+      document.getElementById('satoshiResult').innerText = Number(satoshi.toFixed(0)).toLocaleString() + " Sats";
+      
+      const futureBTCPrice = 16500000000;
+      const futureSatoshiValue = (satoshi * futureBTCPrice) / 100000000;
+      document.getElementById('futureKRWResult').innerHTML = `미래 1BTC = 165억 원<br>일 때 예상 원화 가치:<br><span class='text-yellow-400'>${Math.floor(futureSatoshiValue).toLocaleString()} 원</span>`;
+    }
+
+    window.onload = function() {
+      setTimeout(fetchData, 100);
+      // Enter 키 입력 시 변환 처리
+      document.getElementById('krwInput').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+          convert();
         }
-
-        function formatInput(input) {
-            let value = input.value.replace(/,/g, "");
-            if (!isNaN(value) && value !== "") {
-                input.value = Number(value).toLocaleString();
-            }
-        }
-
-        function convert() {
-            const inputKRW = document.getElementById('krwInput');
-            let rawValue = inputKRW.value.replace(/,/g, "");
-            if (btcPriceUpbit === 0) {
-                alert("비트코인 가격을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
-                return;
-            }
-            const satoshi = (rawValue / btcPriceUpbit) * 100000000;
-            document.getElementById('satoshiResult').innerText = Number(satoshi.toFixed(0)).toLocaleString() + " Sats";
-            
-            const futureBTCPrice = 16500000000;
-            const futureSatoshiValue = (satoshi * futureBTCPrice) / 100000000;
-            document.getElementById('futureKRWResult').innerHTML = `미래 1BTC = 165억 원<br>일 때 예상 원화 가치:<br><span class='text-yellow-400'>${Math.floor(futureSatoshiValue).toLocaleString()} 원</span>`;
-        }
-
-        window.onload = function() {
-            setTimeout(fetchData, 100);
-            document.getElementById('krwInput').addEventListener('keypress', function(event) {
-                if (event.key === 'Enter') {
-                    convert();
-                }
-            });
-        };
-    </script>
+      });
+    };
+  </script>
 </head>
 <body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen">
-    <div class="bg-gray-800 p-6 rounded-lg shadow-lg w-80 text-center">
-        <div class="flex items-center justify-center space-x-2">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg" alt="Bitcoin Logo" class="w-10">
-            <h1 class="text-2xl font-bold">원화-사토시 변환기</h1>
-        </div>
-        <p class="mt-4 text-lg">🔹 코인개코 BTC 가격:<br><span id="btcPriceGecko">불러오는 중...</span></p>
-        <p class="text-sm text-gray-400" id="btcPriceGeckoTime">업데이트: 불러오는 중...</p>
-        <p class="mt-2 text-lg">🔹 업비트 BTC 가격:<br><span id="btcPriceUpbit">불러오는 중...</span></p>
-        <p class="text-sm text-gray-400" id="btcPriceUpbitTime">업데이트: 불러오는 중...</p>
-        <p class="mt-2 text-lg text-red-400">🔥 김치 프리미엄:<br><span id="kimchiPremium">불러오는 중...</span></p>
-        <label for="krwInput" class="block mt-4 text-sm text-gray-400">원화 금액을 입력하세요:</label>
-        <div class="mt-2 flex items-center bg-gray-700 p-2 rounded-md relative">
-            <input type="text" id="krwInput" class="bg-transparent text-right flex-1 outline-none text-lg pr-20 pl-3" style="padding-right: 3.5rem;" oninput="formatInput(this)" onblur="convert()" onkeypress="if(event.key==='Enter'){convert();}" onfocusout="convert();" onkeydown="if(event.key === 'Tab'){convert();}">
-            <span class="text-gray-400 absolute right-4 top-1/2 transform -translate-y-1/2 bg-gray-700 px-2">KRW</span>
-        </div>
-        <button onclick="convert()" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">변환</button>
-        <p id="satoshiResult" class="mt-4 text-xl font-bold"></p>
-        <p id="futureKRWResult" class="mt-4 text-lg font-bold text-yellow-400"></p>
+  <div class="bg-gray-800 p-6 rounded-lg shadow-lg w-80 text-center">
+    <div class="flex items-center justify-center space-x-2">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg" alt="Bitcoin Logo" class="w-10">
+      <h1 class="text-2xl font-bold">원화-사토시 변환기</h1>
     </div>
-    <div class="mt-4 text-gray-500 text-sm">by CY₿ER WALL</div>
+    <p class="mt-4 text-lg">
+      🔹 코인개코 BTC 가격:<br>
+      <span id="btcPriceGecko">불러오는 중...</span>
+    </p>
+    <p class="text-sm text-gray-400" id="btcPriceGeckoTime">업데이트: 불러오는 중...</p>
+    <p class="mt-2 text-lg">
+      🔹 업비트 BTC 가격:<br>
+      <span id="btcPriceUpbit">불러오는 중...</span>
+    </p>
+    <p class="text-sm text-gray-400" id="btcPriceUpbitTime">업데이트: 불러오는 중...</p>
+    <p class="mt-2 text-lg text-red-400">
+      🔥 김치 프리미엄:<br>
+      <span id="kimchiPremium">불러오는 중...</span>
+    </p>
+    <label for="krwInput" class="block mt-4 text-sm text-gray-400">원화 금액을 입력하세요:</label>
+    <!-- 입력란과 KRW 표시를 인라인 flex로 배치 -->
+    <div class="mt-2 flex items-center bg-gray-700 p-2 rounded-md">
+      <input type="text" id="krwInput" class="bg-transparent text-right flex-1 outline-none text-lg pl-3" 
+             oninput="formatInput(this)" 
+             onblur="convert()" 
+             onkeypress="if(event.key==='Enter'){convert();}" 
+             onchange="convert()">
+      <span class="text-gray-400 bg-gray-700 px-2">KRW</span>
+    </div>
+    <button onclick="convert()" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+      변환
+    </button>
+    <p id="satoshiResult" class="mt-4 text-xl font-bold"></p>
+    <p id="futureKRWResult" class="mt-4 text-lg font-bold text-yellow-400"></p>
+  </div>
+  <div class="mt-4 text-gray-500 text-sm">by CY₿ER WALL</div>
 </body>
 </html>
