@@ -18,7 +18,7 @@
                 btcPriceGecko = geckoData.bitcoin.krw;
                 const geckoTime = new Date(geckoData.bitcoin.last_updated_at * 1000).toLocaleString();
                 
-                const upbitResponse = await fetch(`https://api.upbit.com/v1/ticker?markets=KRW-₿&nocache=${timestamp}`);
+                const upbitResponse = await fetch(`https://api.upbit.com/v1/ticker?markets=KRW-BTC&nocache=${timestamp}`);
                 const upbitData = await upbitResponse.json();
                 btcPriceUpbit = upbitData[0].trade_price;
                 const upbitTime = new Date(upbitData[0].timestamp).toLocaleString();
