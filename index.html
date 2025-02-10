@@ -49,6 +49,9 @@
     }
 
     function convert() {
+      // 입력창 포커스 해제하여 모바일 키보드를 숨김
+      document.getElementById("krwInput").blur();
+
       const inputKRW = document.getElementById('krwInput');
       let rawValue = inputKRW.value.replace(/,/g, "");
       if (btcPriceUpbit === 0) {
@@ -62,13 +65,12 @@
       const futureBTCPrice = 16500000000;
       const futureSatoshiValue = (satoshi * futureBTCPrice) / 100000000;
       document.getElementById('futureKRWResult').innerHTML =
-        `미래 1BTC = 165억 원<br>일 때 예상 원화 가치:<br><span class='text-yellow-400'>${Math.floor(futureSatoshiValue).toLocaleString()} 원</span>`;
+        `미래 1BTC = 165억 원 일 때<br>예상 원화 가치:<br><span class='text-yellow-400'>${Math.floor(futureSatoshiValue).toLocaleString()} 원</span>`;
     }
 
     window.onload = function () {
       setTimeout(fetchData, 100);
-      
-      // input에서 Enter 키를 눌렀을 때 변환 처리
+      // 엔터키 입력 시 변환 처리 및 키보드 숨기기
       document.getElementById('krwInput').addEventListener('keydown', function(event) {
         if (event.key === 'Enter') {
           event.preventDefault();  // 폼 제출로 인한 새로고침 방지
@@ -99,7 +101,7 @@
       <span id="kimchiPremium">불러오는 중...</span>
     </p>
     <label for="krwInput" class="block mt-4 text-sm text-gray-400">원화 금액을 입력하세요:</label>
-    <!-- form 태그를 사용하여 모바일 키보드의 "이동/완료" 버튼 누를 때도 변환되도록 함 -->
+    <!-- 폼 태그로 감싸 모바일 키보드의 "완료/이동" 버튼 클릭 시 onsubmit 이벤트가 발생 -->
     <form onsubmit="event.preventDefault(); convert();">
       <div class="relative mt-2">
         <input type="text"
