@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>원화-사토시 변환기 (김프 반영)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 5px;
+            font-size: 1em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* 위쪽 정렬 */
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            max-width: 400px;
+            width: 100%;
+            margin-top: 10px; /* 전체를 위로 올림 */
+        }
+        .title-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: -30px; /* 제목 위 공간 더 줄이기 */
+        }
+        .title-container img {
+            width: 40px;
+            height: auto;
+            margin: 0 10px;
+        }
+        .input-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 80%;
+            max-width: 300px;
+            border: 1px solid #ccc;
+            padding: 8px;
+            font-size: 1em;
+            background: white;
+            margin: 0 auto; /* 중앙 정렬 */
+        }
+        .input-container input {
+            border: none;
+            outline: none;
+            text-align: right;
+            font-size: 1em;
+            width: 100%;
+        }
+        .input-container span {
+            margin-left: 5px;
+            font-size: 1em;
+            color: gray;
+        }
+        p {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .small-text {
+            font-size: 0.7em;
+            color: gray;
+        }
+        .footer {
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            font-size: 0.8em;
+            color: gray;
+        }
+    </style>
+    <script>
+        let btcPriceGecko = 0;
+        let btcPriceUpbit = 0;
+        let kimchiPremium = 0;
+
+        async function fetchData() {
+            try {
+                const timestamp = new Date().getTime();
+
+                // 1. CoinGecko 비트코인 가격 (KRW) 및 시간 가져오기
+                const geckoResponse = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=krw&include_last_updated_at=true&nocache=${timestamp}`);
+                const geckoData = await geckoResponse.json();
+                btcPriceGecko = geckoData.bitcoin.krw;
+                const geckoTime = new Date(geckoData.bitcoin.last_updated_at * 1000).toLocaleString();
+
+                // 2. 업비트 비트코인 가격 (KRW) 및 시간 가져오기
+                const upbitResponse = await fetch(`https://api.upbit.com/v1/ticker?markets=KRW-BTC&nocache=${timestamp}`);
+                const upbitData = await upbitResponse.json();
+                btcPriceUpbit = upbitData[0].trade_price;
+                const upbitTime = new Date(upbitData[0].timestamp).toLocaleString();
+
+                // 3. 김치 프리미엄 계산 ((업비트 - 코인개코) / 코인개코) * 100
+                kimchiPremium = ((btcPriceUpbit - btcPriceGecko) / btcPriceGecko) * 100;
+
+                // 김프 반영된 가격 업데이트
+                document.getElementById('btcPriceGecko').innerText = btcPriceGecko.toLocaleString() + " 원";
+                document.getElementById('btcPriceUpbit').innerText = btcPriceUpbit.toLocaleString() + " 원";
+                document.getElementById('kimchiPremium').innerText = kimchiPremium.toFixed(2) + "%";
+                document.getElementById('geckoTime').innerText = "업데이트: " + geckoTime;
+                document.getElementById('upbitTime').innerText = "업데이트: " + upbitTime;
+
+            } catch (error) {
+                alert("가격 정보를 가져오는 데 실패했습니다. 다시 시도해주세요.");
+            }
+        }
+
+        function formatInput(input) {
+            let value = input.value.replace(/,/g, "");
+            if (!isNaN(value) && value !== "") {
+                input.value = Number(value).toLocaleString();
+            }
+        }
+
+        function convert() {
+            const inputKRW = document.getElementById('krwInput');
+            let rawValue = inputKRW.value.replace(/,/g, "");
+            if (btcPriceUpbit === 0) {
+                alert("비트코인 가격을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+                return;
+            }
+
+            const satoshi = (rawValue / btcPriceUpbit) * 100000000;
+
+            // 미래 기준: 1 BTC = 165억 원일 때, 1사토시 가격
+            const futureSatoshiPrice = 16500000000 / 100000000;
+            const futureKRW = Math.floor(satoshi * futureSatoshiPrice);
+
+            document.getElementById('satoshiResult').innerText = Number(satoshi.toFixed(0)).toLocaleString() + " Sats";
+            document.getElementById('futureKRWResult').innerHTML = "미래 1BTC = 165억 원<br>일 때 예상 원화 가치:<br>" + futureKRW.toLocaleString() + " 원";
+
+            // 키보드 숨기기 (모바일에서 작동)
+            inputKRW.blur();
+        }
+
+        window.onload = fetchData;
+
+        // 엔터 키 입력 시 자동 변환
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("krwInput").addEventListener("input", function () {
+                formatInput(this);
+            });
+            document.getElementById("krwInput").addEventListener("keypress", function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    convert();
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="title-container">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg" alt="Bitcoin Logo">
+            <h1>원화-사토시 변환기</h1>
+        </div>
+        <p>🔹 코인개코 BTC 가격: <span id="btcPriceGecko">불러오는 중...</span></p>
+        <p class="small-text" id="geckoTime">업데이트: 불러오는 중...</p>
+        <p>🔹 업비트 BTC 가격: <span id="btcPriceUpbit">불러오는 중...</span></p>
+        <p class="small-text" id="upbitTime">업데이트: 불러오는 중...</p>
+        <p>🔥 김치 프리미엄: <span id="kimchiPremium">불러오는 중...</span></p>
+        <label for="krwInput">원화 금액을 입력하세요:</label>
+        <div class="input-container">
+            <input type="text" id="krwInput" oninput="formatInput(this)" />
+            <span>KRW</span>
+        </div>
+        <button onclick="convert()">변환</button>
+        <p id="satoshiResult"></p>
+        <p id="futureKRWResult"></p>
+    </div>
+    <div class="footer">by Soohyun</div>
+</body>
+</html>
