@@ -80,8 +80,8 @@
         <p class="mt-2 text-lg text-red-400">🔥 김치 프리미엄:<br><span id="kimchiPremium">불러오는 중...</span></p>
         <label for="krwInput" class="block mt-4 text-sm text-gray-400">원화 금액을 입력하세요:</label>
         <div class="mt-2 flex items-center bg-gray-700 p-2 rounded-md relative">
-            <input type="text" id="krwInput" class="bg-transparent text-right flex-1 outline-none text-lg pr-16 pl-3" oninput="formatInput(this)" onblur="convert()" onkeypress="if(event.key==='Enter'){convert();}" onfocusout="convert();" onkeydown="if(event.key === 'Tab'){convert();}">
-            <span class="text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-700 px-1">KRW</span>
+            <input type="text" id="krwInput" class="bg-transparent text-right flex-1 outline-none text-lg pr-20 pl-3" style="padding-right: 3.5rem;" oninput="formatInput(this)" onblur="convert()" onkeypress="if(event.key==='Enter'){convert();}" onfocusout="convert();" onkeydown="if(event.key === 'Tab'){convert();}">
+            <span class="text-gray-400 absolute right-4 top-1/2 transform -translate-y-1/2 bg-gray-700 px-2">KRW</span>
         </div>
         <button onclick="convert()" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">변환</button>
         <p id="satoshiResult" class="mt-4 text-xl font-bold"></p>
