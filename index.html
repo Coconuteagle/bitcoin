@@ -79,9 +79,9 @@
         <p class="text-sm text-gray-400" id="btcPriceUpbitTime">업데이트: 불러오는 중...</p>
         <p class="mt-2 text-lg text-red-400">🔥 김치 프리미엄:<br><span id="kimchiPremium">불러오는 중...</span></p>
         <label for="krwInput" class="block mt-4 text-sm text-gray-400">원화 금액을 입력하세요:</label>
-        <div class="mt-2 flex items-center bg-gray-700 p-2 rounded-md">
-            <input type="text" id="krwInput" class="bg-transparent text-right flex-1 outline-none text-lg" oninput="formatInput(this)">
-            <span class="text-gray-400 ml-2">KRW</span>
+        <div class="mt-2 flex items-center bg-gray-700 p-2 rounded-md relative">
+            <input type="text" id="krwInput" class="bg-transparent text-right flex-1 outline-none text-lg pr-10" oninput="formatInput(this)">
+            <span class="text-gray-400 absolute right-3">KRW</span>
         </div>
         <button onclick="convert()" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">변환</button>
         <p id="satoshiResult" class="mt-4 text-xl font-bold"></p>
